@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合纵连横 - 吞并六国</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a2e 50%, #0f1a30 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+            letter-spacing: 0.3em;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .title::after {
+            content: '吞并六国';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+            letter-spacing: 0.5em;
+            color: #e94560;
+            background: none;
+            -webkit-text-fill-color: #e94560;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        
+        /* 警告横幅 */
+        .war-banner {
+            background: linear-gradient(90deg, #dc2626, #991b1b, #dc2626);
+            color: #fff;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: pulse 2s infinite;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .war-banner.active {
+            display: block;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .conquest-progress {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            text-align: center;
+        }
+        
+        .progress-title {
+            color: #ffd700;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560 0%, #ff6b35 50%, #ffd700 100%);
+            transition: width 0.8s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-weight: 700;
+            color: #000;
+            text-shadow: 0 0 2px rgba(255,255,255,0.5);
+        }
+        
+        .conquest-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .conquest-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .resources {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .resource-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .resource-item:hover {
+            transform: translateY(-3px);
+            border-color: rgba(233, 69, 96, 0.3);
+        }
+        
+        .resource-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .resource-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .resource-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .resource-change {
+            font-size: 0.75rem;
+            color: #4ade80;
+            margin-top: 2px;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+        }
+        
+        .map-container {
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,215,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section-title {
+            color: #ffd700;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .turn-badge {
+            background: linear-gradient(135deg, #e94560, #ff6b35);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .states-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .state-card {
+            background: linear-gradient(145deg, rgba(20,20,40,0.9), rgba(10,10,25,0.9));
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .state-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: currentColor;
+        }
+        
+        .state-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .state-card.selected {
+            box-shadow: 0 0 0 3px #ffd700, 0 10px 30px rgba(0,0,0,0.5);
+            transform: scale(1.02);
+        }
+        
+        .state-card.annexed {
+            opacity: 0.4;
+            filter: grayscale(0.8);
+            border-color: #333 !important;
+        }
+        
+        .state-card.independent {
+            border-color: #00d9ff;
+            box-shadow: 0 0 15px rgba(0,217,255,0.1);
+        }
+        
+        .state-card.vassal {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255,215,0,0.1);
+            background: linear-gradient(145deg, rgba(40,30,10,0.9), rgba(30,20,5,0.9));
+        }
+        
+        .state-card.allied-against {
+            border-color: #e94560;
+            box-shadow: 0 0 15px rgba(233,69,96,0.2);
+        }
+        
+        .state-card.being-attacked {
+            animation: attackPulse 1.5s infinite;
+            border-color: #dc2626;
+        }
+        
+        /* 大国特殊样式 */
+        .state-card.great-power {
+            border-color: #9c27b0;
+            box-shadow: 0 0 20px rgba(156,39,176,0.3);
+        }
+        
+        .state-card.great-power::after {
+            content: '★大国';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.65rem;
+            color: #9c27b0;
+            background: rgba(156,39,176,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        
+        @keyframes attackPulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(220,38,38,0.5); }
+            50% { box-shadow: 0 0 20px rgba(220,38,38,0.8); }
+        }
+        
+        .state-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .state-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .state-status-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .badge-independent {
+            background: rgba(0,217,255,0.2);
+            color: #00d9ff;
+        }
+        
+        .badge-vassal {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+        }
+        
+        .badge-annexed {
+            background: rgba(100,100,100,0.3);
+            color: #666;
+        }
+        
+        .badge-allied {
+            background: rgba(233,69,96,0.2);
+            color: #e94560;
+        }
+        
+        /* 距离和大小标签样式 */
+        .distance-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .distance-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .distance-near .distance-icon {
+            background: #ef4444;
+            box-shadow: 0 0 5px #ef4444;
+        }
+        
+        .distance-near {
+            color: #ef4444;
+        }
+        
+        .distance-mid .distance-icon {
+            background: #f59e0b;
+            box-shadow: 0 0 5px #f59e0b;
+            transform: rotate(45deg);
+            border-radius: 2px;
+            width: 7px;
+            height: 7px;
+        }
+        
+        .distance-mid {
+            color: #f59e0b;
+        }
+        
+        .distance-far .distance-icon {
+            background: #22c55e;
+            box-shadow: 0 0 5px #22c55e;
+        }
+        
+        .distance-far {
+            color: #22c55e;
+        }
+        
+        .size-tag {
+            color: #666;
+            font-weight: normal;
+        }
+        
+        .state-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+        }
+        
+        .stat-value-highlight {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .state-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 3px;
+            overflow: hidden;
+        }
+        
+        .state-bar-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .fill-power {
+            background: linear-gradient(90deg, #00d9ff, #0099cc);
+        }
+        
+        .fill-stability {
+            background: linear-gradient(90deg, #4ade80, #22c55e);
+        }
+        
+        .fill-resistance {
+            background: linear-gradient(90deg, #ffd700, #e94560);
+        }
+        
+        .war-duration {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.75rem;
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+        }
+        
+        .alliance-indicator {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.75rem;
+            color: #e94560;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .action-panel, .info-panel, .log-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .target-info {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .target-info.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .target-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .target-name {
+            font-size: 1.3rem;
+            color: #ffd700;
+            font-weight: 700;
+        }
+        
+        .target-type {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+        
+        .action-btn:hover::after {
+            left: 100%;
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-diplomacy {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+        }
+        
+        .btn-bribe {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+        }
+        
+        .btn-subvert {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #fff;
+        }
+        
+        .btn-military {
+            background: linear-gradient(135deg, #dc2626, #b91d1d);
+            color: #fff;
+        }
+        
+        .btn-annex {
+            background: linear-gradient(135deg, #e94560, #be123c);
+            color: #fff;
+            font-size: 1.1rem;
+            padding: 15px;
+            margin-top: 10px;
+            border: 2px solid rgba(255,215,0,0.5);
+        }
+        
+        .btn-endturn {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 10px;
+        }
+        
+        .action-btn:hover:not(:disabled) {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .cost-tag {
+            margin-left: auto;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 0.75rem;
+        }
+        
+        .info-value {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .log-content {
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid;
+            background: rgba(255,255,255,0.03);
+            border-radius: 0 5px 5px 0;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-entry.diplomacy { border-left-color: #3b82f6; }
+        .log-entry.military { border-left-color: #dc2626; }
+        .log-entry.economy { border-left-color: #f59e0b; }
+        .log-entry.event { border-left-color: #ffd700; }
+        .log-entry.annex { border-left-color: #e94560; background: rgba(233,69,96,0.1); }
+        .log-entry.coalition { border-left-color: #dc2626; background: rgba(220,38,38,0.15); font-weight: 600; }
+        .log-entry.warning { border-left-color: #f59e0b; background: rgba(245,158,11,0.1); }
+        .log-entry.strategy { border-left-color: #9c27b0; background: rgba(156,39,176,0.1); }
+        
+        .log-time {
+            font-size: 0.75rem;
+            color: #666;
+            margin-right: 5px;
+        }
+        
+        .game-over {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .game-over.show {
+            display: flex;
+        }
+        
+        .victory-title {
+            font-size: 4rem;
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 0 60px rgba(255,215,0,0.5);
+        }
+        
+        .defeat-title {
+            font-size: 4rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .game-over-desc {
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .final-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .final-stat {
+            text-align: center;
+        }
+        
+        .final-value {
+            font-size: 2rem;
+            color: #ffd700;
+            font-weight: 700;
+        }
+        
+        .final-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .restart-btn {
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            border: none;
+            border-radius: 30px;
+            color: #1a1a2e;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 合纵警告弹窗 */
+        .coalition-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+            border: 2px solid #dc2626;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 0 50px rgba(220,38,38,0.5);
+            text-align: center;
+        }
+        
+        .coalition-alert.show {
+            display: block;
+            animation: alertPop 0.5s ease;
+        }
+        
+        @keyframes alertPop {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .coalition-title {
+            color: #dc2626;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .coalition-desc {
+            color: #aaa;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .coalition-btn {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .coalition-btn:hover {
+            background: #b91d1d;
+            transform: scale(1.05);
+        }
+        
+        /* 边境告急弹窗样式 */
+        .border-crisis-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+            border: 2px solid #8b5cf6;
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 500px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 0 60px rgba(139,92,246,0.4);
+            text-align: center;
+        }
+        
+        .border-crisis-alert.show {
+            display: block;
+            animation: alertPop 0.5s ease;
+        }
+        
+        .border-crisis-title {
+            color: #8b5cf6;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .border-crisis-content {
+            color: #aaa;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+        
+        .border-crisis-content .highlight {
+            color: #ef4444;
+            font-weight: 700;
+        }
+        
+        .loss-stats {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .loss-stat {
+            text-align: center;
+        }
+        
+        .loss-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .loss-value {
+            color: #ef4444;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        
+        .loss-label {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
+        
+        .strategy-tip {
+            background: rgba(245,158,11,0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 0 8px 8px 0;
+            color: #fbbf24;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .strategy-tip::before {
+            content: '💡 ';
+        }
+        
+        .border-crisis-btn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: #fff;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .border-crisis-btn:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transform: scale(1.05);
+        }
+        
+        /* 策略提示弹窗 */
+        .strategy-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+            border: 2px solid #9c27b0;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 550px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 0 50px rgba(156,39,176,0.5);
+            text-align: center;
+        }
+        
+        .strategy-alert.show {
+            display: block;
+            animation: alertPop 0.5s ease;
+        }
+        
+        .strategy-title {
+            color: #9c27b0;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .strategy-desc {
+            color: #aaa;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .strategy-btn {
+            background: #9c27b0;
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .strategy-btn:hover {
+            background: #7b1fa2;
+            transform: scale(1.05);
+        }
+        
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1999;
+            display: none;
+        }
+        
+        .overlay.show {
+            display: block;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .resources {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .states-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .title { font-size: 2rem; }
+            .resources { grid-template-columns: repeat(2, 1fr); }
+            .states-grid { grid-template-columns: 1fr; }
+            .final-stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">合纵连横</h1>
+            <p class="subtitle">远交近攻，各个击破，吞并六国，一统天下</p>
+        </div>
+        
+        <div class="war-banner" id="warBanner">
+            ⚠️ 合纵警报：多国组成抗秦联军，正在反攻！⚠️
+        </div>
+        
+        <div class="conquest-progress">
+            <div class="progress-title">
+                <span>🏛️ 统一大业进度</span>
+                <span id="progressText">0/6 国</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+            </div>
+            <div class="conquest-stats">
+                <div class="conquest-stat">
+                    <span class="stat-icon">⚔️</span>
+                    <span>已吞并: <b id="annexedCount" style="color:#e94560">0</b></span>
+                </div>
+                <div class="conquest-stat">
+                    <span class="stat-icon">🏳️</span>
+                    <span>附庸国: <b id="vassalCount" style="color:#ffd700">0</b></span>
+                </div>
+                <div class="conquest-stat">
+                    <span class="stat-icon">🛡️</span>
+                    <span>独立国: <b id="independentCount" style="color:#00d9ff">6</b></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resources">
+            <div class="resource-item">
+                <div class="resource-icon">💰</div>
+                <div class="resource-value" id="resGold">1000</div>
+                <div class="resource-label">国库资金</div>
+                <div class="resource-change" id="goldChange">+100/年</div>
+            </div>
+            <div class="resource-item">
+                <div class="resource-icon">⚔️</div>
+                <div class="resource-value" id="resArmy">100</div>
+                <div class="resource-label">秦军兵力</div>
+                <div class="resource-change" id="armyChange">+40/年</div> <!-- 改为40 -->
+            </div>
+            <div class="resource-item">
+                <div class="resource-icon">🎖️</div>
+                <div class="resource-value" id="resPrestige">50</div>
+                <div class="resource-label">虎狼之威</div>
+                <div class="resource-change" style="color:#666">影响臣服速度</div>
+            </div>
+            <div class="resource-item">
+                <div class="resource-icon">😤</div>
+                <div class="resource-value" id="resFatigue">20</div>
+                <div class="resource-label">六国敌意</div>
+                <div class="resource-change" style="color: rgb(74, 222, 128);" id="hostilityTrend">↓ 可控</div>
+            </div>
+            <div class="resource-item">
+                <div class="resource-icon">📜</div>
+                <div class="resource-value" id="resTurn">1</div>
+                <div class="resource-label">执政年数</div>
+                <div class="resource-change" style="color:#666">历史进程</div>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="map-container">
+                <div class="section-header">
+                    <div class="section-title">
+                        <span>🗺️</span>
+                        <span>战国局势图</span>
+                    </div>
+                    <div class="turn-badge" id="turnBadge">公元前 356 年</div>
+                </div>
+                
+                <div class="states-grid" id="statesGrid"></div>
+                
+                <div class="log-panel" style="margin-top: 20px;">
+                    <div class="section-title" style="margin-bottom:15px;font-size:1.1rem;">
+                        <span>📜</span>
+                        <span>史记 · 秦本纪</span>
+                    </div>
+                    <div class="log-content" id="logContent"></div>
+                </div>
+            </div>
+            
+            <div class="side-panel">
+                <div class="action-panel">
+                    <div class="section-title">
+                        <span>⚡</span>
+                        <span>战略决策</span>
+                    </div>
+                    
+                    <div class="target-info" id="targetInfo">
+                        <div class="target-header">
+                            <span class="target-name" id="targetName">--</span>
+                            <span class="target-type" id="targetStatus">未选择</span>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">国力评估</span>
+                                <span class="info-value" id="targetPower">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">抵抗意志</span>
+                                <span class="info-value" id="targetResistance">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">当前状态</span>
+                                <span class="info-value" id="targetState">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">吞并难度</span>
+                                <span class="info-value" id="targetDifficulty" style="color:#e94560">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="action-btn btn-diplomacy" id="btnDiplomacy" onclick="game.act('diplomacy')" disabled>
+                        <span>🤝</span>
+                        <span>外交施压</span>
+                        <span class="cost-tag">-150💰</span>
+                    </button>
+                    
+                    <button class="action-btn btn-bribe" id="btnBribe" onclick="game.act('bribe')" disabled>
+                        <span>💎</span>
+                        <span>重金收买</span>
+                        <span class="cost-tag">-250💰</span>
+                    </button>
+                    
+                    <button class="action-btn btn-subvert" id="btnSubvert" onclick="game.act('subvert')" disabled>
+                        <span>🗡️</span>
+                        <span>间谍渗透</span>
+                        <span class="cost-tag">-200💰 -10⚔️</span>
+                    </button>
+                    
+                    <button class="action-btn btn-military" id="btnMilitary" onclick="game.act('military')" disabled>
+                        <span>⚔️</span>
+                        <span>军事打击</span>
+                        <span class="cost-tag" id="militaryCost">-40⚔️</span>
+                    </button>
+                    
+                    <button class="action-btn btn-annex" id="btnAnnex" onclick="game.act('annex')" disabled>
+                        <span>🏛️</span>
+                        <span id="annexBtnText">强行吞并</span>
+                        <span class="cost-tag" id="annexBtnCost">大规模战争</span>
+                    </button>
+                    
+                    <button class="action-btn btn-endturn" onclick="game.endTurn()">
+                        <span>⏳</span>
+                        <span>结束本年</span>
+                        <span class="cost-tag">休养生息</span>
+                    </button>
+                </div>
+                
+                <div class="info-panel">
+                    <div class="section-title" style="font-size:1rem;">
+                        <span>📋</span>
+                        <span>战略指南</span>
+                    </div>
+                    <div style="font-size:0.85rem;line-height:1.8;color:#aaa;">
+                        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <b style="color:#ffd700">附庸机制：</b><br>
+                            当国家抵抗&lt;20且国力&lt;60%时，外交施压可使其臣服。<br>
+                            <span style="color:#ffd700">附庸国可被吞并（难度-30%），且每年纳贡。</span>
+                        </div>
+                        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <b style="color:#dc2626">合纵反攻：</b><br>
+                            对一国用兵超过2次，其他国家会警觉。<br>
+                            超过3次未下，可能触发<span style="color:#dc2626">六国合纵联军反攻</span>！
+                        </div>
+                        <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);">
+                            <b style="color:#ef4444">⚠️ 远交近攻：</b><br>
+                            远征<span style="color:#22c55e">远国</span>时，若<span style="color:#ef4444">近邻</span>未平，边境必遭袭击！<br>
+                            建议先灭近邻小国，再图远国。
+                        </div>
+                        <div>
+                            <b style="color:#9c27b0">★ 大国威胁：</b><br>
+                            <span style="color:#9c27b0">楚国、齐国</span>乃当世大国，实力雄厚，贸然攻伐损耗巨大。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 合纵警告弹窗 -->
+    <div class="overlay" id="overlay"></div>
+    <div class="coalition-alert" id="coalitionAlert">
+        <div class="coalition-title">🚨 合纵联军来袭！</div>
+        <div class="coalition-desc" id="coalitionDesc"></div>
+        <button class="coalition-btn" onclick="game.closeCoalitionAlert()">整军迎战</button>
+    </div>
+    
+    <!-- 边境告急弹窗 -->
+    <div class="border-crisis-alert" id="borderCrisisAlert">
+        <div class="border-crisis-title">
+            <span>⚔️</span>
+            <span>边境告急！</span>
+        </div>
+        <div class="border-crisis-content" id="borderCrisisContent"></div>
+        <div class="loss-stats">
+            <div class="loss-stat">
+                <div class="loss-icon">💀</div>
+                <div class="loss-value" id="lossArmy">0</div>
+                <div class="loss-label">损失兵力</div>
+            </div>
+            <div class="loss-stat">
+                <div class="loss-icon">💰</div>
+                <div class="loss-value" id="lossGold">0</div>
+                <div class="loss-label">边境军费</div>
+            </div>
+        </div>
+        <div class="strategy-tip">
+            教训：远征远国时，近邻会趁虚而入！先灭近邻小国是上策。
+        </div>
+        <button class="border-crisis-btn" onclick="game.closeBorderCrisis()">调兵回防</button>
+    </div>
+    
+    <!-- 策略提示弹窗 -->
+    <div class="strategy-alert" id="strategyAlert">
+        <div class="strategy-title" id="strategyTitle">⚠️ 战略警告</div>
+        <div class="strategy-desc" id="strategyDesc"></div>
+        <button class="strategy-btn" onclick="game.closeStrategyAlert()">我知道了</button>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <div class="victory-title" id="endTitle" style="display:none">天下一统</div>
+        <div class="defeat-title" id="endTitleDefeat" style="display:none">帝国崩塌</div>
+        <div class="game-over-desc" id="endDesc"></div>
+        <div class="final-stats" id="finalStats"></div>
+        <button class="restart-btn" onclick="location.reload()">再统天下</button>
+    </div>
+
+    <script>
+        class ConquestGame {
+            constructor() {
+                this.turn = 1;
+                this.year = 356;
+                
+                this.gold = 1000;
+                this.army = 100;
+                this.prestige = 50;
+                this.globalHostility = 20;
+                
+                this.warDuration = {};
+                this.currentTarget = null;
+                
+                this.coalitionActive = false;
+                this.coalitionMembers = [];
+                this.coalitionCountdown = 0;
+                
+                this.greatPowerPenalty = {};
+                this.internalCrisis = false;
+                this.crisisCountdown = 0;
+                
+                // 定义近邻国家（用于边境告急判断）
+                this.nearStates = ['韩', '魏'];
+                // 定义远国
+                this.farStates = ['楚', '齐'];
+                
+                this.states = {
+                    '韩': { 
+                        name: '韩', 
+                        power: 40, maxPower: 40,
+                        resistance: 30, stability: 60,
+                        status: 'independent', alliance: null,
+                        distance: '近邻', size: '小国',
+                        vassalYears: 0,
+                        isGreatPower: false
+                    },
+                    '魏': { 
+                        name: '魏', 
+                        power: 60, maxPower: 60,
+                        resistance: 50, stability: 70,
+                        status: 'independent', alliance: null,
+                        distance: '近邻', size: '中等',
+                        vassalYears: 0,
+                        isGreatPower: false
+                    },
+                    '赵': { 
+                        name: '赵', 
+                        power: 70, maxPower: 70,
+                        resistance: 60, stability: 65,
+                        status: 'independent', alliance: null,
+                        distance: '中等', size: '中等',
+                        vassalYears: 0,
+                        isGreatPower: false
+                    },
+                    '楚': { 
+                        name: '楚', 
+                        power: 90, maxPower: 90,
+                        resistance: 70, stability: 50,
+                        status: 'independent', alliance: null,
+                        distance: '远国', size: '大国',
+                        vassalYears: 0,
+                        isGreatPower: true
+                    },
+                    '齐': { 
+                        name: '齐', 
+                        power: 85, maxPower: 85,
+                        resistance: 65, stability: 75,
+                        status: 'independent', alliance: null,
+                        distance: '远国', size: '大国',
+                        vassalYears: 0,
+                        isGreatPower: true
+                    },
+                    '燕': { 
+                        name: '燕', 
+                        power: 55, maxPower: 55,
+                        resistance: 40, stability: 60,
+                        status: 'independent', alliance: null,
+                        distance: '中等', size: '小国',
+                        vassalYears: 0,
+                        isGreatPower: false
+                    }
+                };
+                
+                this.selected = null;
+                this.gameOver = false;
+                this.annexedOrder = [];
+                // 记录是否已经触发过边境告急（每个远国只触发一次）
+                this.borderCrisisTriggered = { '楚': false, '齐': false };
+                
+                this.init();
+            }
+            
+            init() {
+                this.render();
+                this.updateUI();
+                this.log('秦王继位，六国割据。远交近攻，各个击破，一统天下！', 'event');
+                this.log('警告：对一国用兵超过3次，将触发六国合纵反攻！', 'warning');
+                this.log('提示：远征远国时，近邻未平必遭边境袭击！', 'strategy');
+            }
+            
+            render() {
+                const grid = document.getElementById('statesGrid');
+                grid.innerHTML = '';
+                
+                Object.values(this.states).forEach(state => {
+                    if (state.status === 'annexed') return;
+                    
+                    const card = document.createElement('div');
+                    const isSelected = this.selected === state.name;
+                    const isBeingAttacked = this.warDuration[state.name] > 0;
+                    
+                    let statusClass = state.status;
+                    if (isBeingAttacked) statusClass += ' being-attacked';
+                    if (state.isGreatPower && state.status !== 'annexed') statusClass += ' great-power';
+                    
+                    // 距离样式类
+                    let distanceClass = '';
+                    if (state.distance === '近邻') distanceClass = 'distance-near';
+                    else if (state.distance === '中等') distanceClass = 'distance-mid';
+                    else if (state.distance === '远国') distanceClass = 'distance-far';
+                    
+                    let statusText = {
+                        'independent': '独立',
+                        'vassal': '附庸',
+                        'allied-against': '抗秦同盟'
+                    }[state.status] || '独立';
+                    
+                    let badgeClass = `badge-${state.status}`;
+                    
+                    card.className = `state-card ${statusClass} ${isSelected ? 'selected' : ''}`;
+                    card.onclick = () => this.selectState(state.name);
+                    
+                    let warInfo = '';
+                    if (isBeingAttacked) {
+                        const times = this.warDuration[state.name];
+                        const warning = times >= 2 ? '⚠️' : '';
+                        warInfo = `<div class="war-duration">${warning} 已用兵 ${times} 次 ${warning}</div>`;
+                    }
+                    
+                    let vassalInfo = '';
+                    if (state.status === 'vassal') {
+                        vassalInfo = `<div style="margin-top:5px;font-size:0.7rem;color:#ffd700;">已臣服 ${state.vassalYears} 年，可吞并</div>`;
+                    }
+                    
+                    let greatPowerWarning = '';
+                    if (state.isGreatPower && state.status === 'independent') {
+                        greatPowerWarning = `<div style="margin-top:5px;font-size:0.7rem;color:#9c27b0;font-weight:600;">⚠️ 大国 - 攻伐需谨慎</div>`;
+                    }
+                    
+                    // 删除吞并难度显示（移除了 ${isSelected ? `<div...>吞并难度...</div>` : ''} 这行）
+                    card.innerHTML = `
+                        <div class="state-header">
+                            <div class="state-name">${state.name}国</div>
+                            <div class="state-status-badge ${badgeClass}">${statusText}</div>
+                        </div>
+                        <div class="distance-badge ${distanceClass}">
+                            <span class="distance-icon"></span>
+                            <span>${state.distance}</span>
+                            <span class="size-tag">[${state.size}]</span>
+                        </div>
+                        <div class="state-stats">
+                            <div>
+                                <div class="stat-row">
+                                    <span>国力</span>
+                                    <span class="stat-value-highlight">${Math.floor(state.power)}/${state.maxPower}</span>
+                                </div>
+                                <div class="state-bar">
+                                    <div class="state-bar-fill fill-power" style="width: ${(state.power/state.maxPower)*100}%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="stat-row">
+                                    <span>稳定</span>
+                                    <span class="stat-value-highlight">${Math.floor(state.stability)}%</span>
+                                </div>
+                                <div class="state-bar">
+                                    <div class="state-bar-fill fill-stability" style="width: ${state.stability}%"></div>
+                                </div>
+                            </div>
+                            <div style="grid-column: 1 / -1;">
+                                <div class="stat-row">
+                                    <span>抵抗意志</span>
+                                    <span style="color:${state.resistance > 70 ? '#e94560' : state.resistance > 40 ? '#ffd700' : '#4ade80'}">${Math.floor(state.resistance)}%</span>
+                                </div>
+                                <div class="state-bar">
+                                    <div class="state-bar-fill fill-resistance" style="width: ${state.resistance}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        ${state.alliance ? `<div class="alliance-indicator">🔗 与 ${state.alliance}国 合纵同盟</div>` : ''}
+                        ${warInfo}
+                        ${vassalInfo}
+                        ${greatPowerWarning}
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+                
+                const annexed = Object.values(this.states).filter(s => s.status === 'annexed');
+                if (annexed.length > 0) {
+                    const annexedDiv = document.createElement('div');
+                    annexedDiv.style.gridColumn = '1 / -1';
+                    annexedDiv.style.marginTop = '10px';
+                    annexedDiv.style.padding = '15px';
+                    annexedDiv.style.background = 'rgba(233,69,96,0.1)';
+                    annexedDiv.style.borderRadius = '10px';
+                    annexedDiv.style.border = '1px solid rgba(233,69,96,0.3)';
+                    annexedDiv.innerHTML = `
+                        <div style="color:#e94560;font-size:0.9rem;margin-bottom:10px;font-weight:600;">已吞并领土（${annexed.length}/6）</div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            ${annexed.map(s => `
+                                <div style="background:rgba(0,0,0,0.3);padding:8px 15px;border-radius:20px;font-size:0.85rem;color:#666;border:1px solid rgba(255,255,255,0.1);">
+                                    <span style="color:#e94560;font-weight:700;">${s.name}</span> 郡
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    grid.appendChild(annexedDiv);
+                }
+            }
+            
+            calculateDifficulty(state) {
+                if (state.status === 'vassal') return '容易（已臣服）';
+                
+                let powerRatio = state.power / Math.max(1, this.army * 0.8);
+                let resistanceMod = state.resistance / 100;
+                let allianceMod = state.alliance ? 1.5 : 1;
+                let warBonus = (this.warDuration[state.name] || 0) * 0.1;
+                
+                let greatPowerMod = 1;
+                if (state.isGreatPower) {
+                    greatPowerMod = 1.5;
+                    if (this.army < 150) {
+                        greatPowerMod = 2.0;
+                    }
+                }
+                
+                const score = (powerRatio * 0.4 + resistanceMod * 0.4) * allianceMod * greatPowerMod - warBonus;
+                
+                if (score < 0.3) return '极易';
+                if (score < 0.5) return '容易';
+                if (score < 0.7) return '中等';
+                if (score < 0.9) return '困难';
+                if (score < 1.2) return '艰难';
+                if (score < 1.5) return state.isGreatPower ? '极难（大国实力）' : '极难';
+                return state.isGreatPower ? '几乎不可能（先取近邻）' : '极难（长期战争）';
+            }
+            
+            selectState(name) {
+                if (this.gameOver) return;
+                const state = this.states[name];
+                if (state.status === 'annexed') return;
+                
+                this.selected = name;
+                
+                this.updateTargetInfo();
+                this.render();
+                this.updateButtons();
+            }
+            
+            showStrategyAlert(title, desc) {
+                document.getElementById('strategyTitle').textContent = title;
+                document.getElementById('strategyDesc').innerHTML = desc;
+                document.getElementById('strategyAlert').classList.add('show');
+                document.getElementById('overlay').classList.add('show');
+            }
+            
+            closeStrategyAlert() {
+                document.getElementById('strategyAlert').classList.remove('show');
+                document.getElementById('overlay').classList.remove('show');
+            }
+            
+            // 检查并触发边境告急
+            checkBorderCrisis(targetName) {
+                const state = this.states[targetName];
+                
+                // 只有攻打远国（楚、齐）时才可能触发
+                if (!this.farStates.includes(targetName)) return false;
+                
+                // 检查是否还有近邻国家存在且未被吞并（韩、魏）
+                const activeNearStates = this.nearStates.filter(name => {
+                    const s = this.states[name];
+                    return s && s.status !== 'annexed' && s.status !== 'vassal';
+                });
+                
+                if (activeNearStates.length === 0) return false;
+                
+                // 每个远国只触发一次边境告急
+                if (this.borderCrisisTriggered[targetName]) return false;
+                
+                this.borderCrisisTriggered[targetName] = true;
+                
+                // 随机选择一个近邻作为袭击者
+                const attacker = activeNearStates[Math.floor(Math.random() * activeNearStates.length)];
+                
+                // 计算损失（基于当前兵力和金钱的一定比例）
+                const armyLoss = Math.floor(25 + Math.random() * 20); // 25-45兵力
+                const goldLoss = Math.floor(80 + Math.random() * 40); // 80-120金
+                
+                // 应用损失
+                this.army = Math.max(0, this.army - armyLoss);
+                this.gold = Math.max(0, this.gold - goldLoss);
+                
+                // 显示弹窗
+                this.showBorderCrisis(attacker, targetName, armyLoss, goldLoss);
+                
+                return true;
+            }
+            
+            showBorderCrisis(attacker, target, armyLoss, goldLoss) {
+                const content = `秦军主力远征在外，<span class="highlight">${attacker}国</span>趁机袭击秦国边境！<br><br>
+                                边境守军寡不敌众，损失惨重：`;
+                
+                document.getElementById('borderCrisisContent').innerHTML = content;
+                document.getElementById('lossArmy').textContent = armyLoss;
+                document.getElementById('lossGold').textContent = goldLoss;
+                
+                document.getElementById('borderCrisisAlert').classList.add('show');
+                document.getElementById('overlay').classList.add('show');
+                
+                this.log(`⚠️ 边境告急！秦军远征${target}国，${attacker}国趁虚而入，损失${armyLoss}兵力和${goldLoss}金！`, 'warning');
+            }
+            
+            closeBorderCrisis() {
+                document.getElementById('borderCrisisAlert').classList.remove('show');
+                document.getElementById('overlay').classList.remove('show');
+                this.updateUI();
+            }
+            
+            updateTargetInfo() {
+                const info = document.getElementById('targetInfo');
+                if (!this.selected) {
+                    info.classList.remove('active');
+                    return;
+                }
+                
+                const state = this.states[this.selected];
+                info.classList.add('active');
+                
+                document.getElementById('targetName').textContent = state.name + '国';
+                document.getElementById('targetStatus').textContent = {
+                    'independent': state.isGreatPower ? '独立大国' : '独立诸侯',
+                    'vassal': '秦国附庸',
+                    'allied-against': '抗秦同盟成员'
+                }[state.status] || '独立诸侯';
+                
+                document.getElementById('targetPower').textContent = `${Math.floor(state.power)}/${state.maxPower} (${Math.floor((state.power/state.maxPower)*100)}%)`;
+                document.getElementById('targetResistance').textContent = Math.floor(state.resistance) + '%' + (state.resistance > 70 ? ' (强烈抵抗)' : state.resistance > 40 ? ' (犹豫不决)' : ' (民心涣散)');
+                document.getElementById('targetState').textContent = state.alliance ? `与${state.alliance}国结盟（合纵）` : (this.warDuration[this.selected] > 0 ? `已用兵${this.warDuration[this.selected]}次` : '孤立无援（可破）');
+                document.getElementById('targetDifficulty').textContent = this.calculateDifficulty(state);
+                
+                const militaryCost = document.getElementById('militaryCost');
+                if (state.isGreatPower && state.status === 'independent') {
+                    militaryCost.textContent = '-60⚔️（大国）';
+                } else {
+                    militaryCost.textContent = '-40⚔️';
+                }
+                
+                const annexBtn = document.getElementById('btnAnnex');
+                const annexText = document.getElementById('annexBtnText');
+                const annexCost = document.getElementById('annexBtnCost');
+                
+                if (state.status === 'vassal') {
+                    annexText.textContent = '吞并附庸';
+                    annexCost.textContent = '难度-30%';
+                } else if (state.isGreatPower) {
+                    annexText.textContent = '攻灭大国';
+                    annexCost.textContent = '损耗巨大';
+                } else {
+                    annexText.textContent = '强行吞并';
+                    annexCost.textContent = '大规模战争';
+                }
+            }
+            
+            act(type) {
+                if (!this.selected || this.gameOver) return;
+                const state = this.states[this.selected];
+                
+                // 如果是攻打远国（楚或齐），先检查边境告急
+                if ((type === 'military' || type === 'annex') && this.farStates.includes(this.selected)) {
+                    this.checkBorderCrisis(this.selected);
+                }
+                
+                let message = '';
+                let logType = 'diplomacy';
+                
+                // 记录用兵（外交施压和重金收买不算用兵）
+                if (type !== 'diplomacy' && type !== 'bribe') {
+                    if (!this.warDuration[this.selected]) {
+                        this.warDuration[this.selected] = 0;
+                    }
+                    this.warDuration[this.selected]++;
+                    this.currentTarget = this.selected;
+                    
+                    if (state.isGreatPower) {
+                        this.triggerGreatPowerCrisis(state.name);
+                    }
+                }
+                
+                switch(type) {
+                    case 'diplomacy':
+                        if (this.gold < 150) return;
+                        this.gold -= 150;
+                        
+                        let resistDrop = 15 + Math.floor(Math.random() * 10);
+                        if (state.isGreatPower) {
+                            resistDrop = Math.floor(resistDrop * 0.6);
+                        }
+                        state.resistance = Math.max(0, state.resistance - resistDrop);
+                        
+                        const canVassal = (state.resistance < 20 && state.power < state.maxPower * 0.6 && !state.alliance) || state.resistance < 10;
+                        
+                        if (canVassal && state.status !== 'vassal') {
+                            state.status = 'vassal';
+                            state.vassalYears = 0;
+                            message = `🤝 ${state.name}国不堪压力，愿为秦国附庸，称臣纳贡！每年提供40金+15军。`;
+                            this.prestige += 8;
+                            logType = 'annex';
+                            
+                            delete this.warDuration[this.selected];
+                            this.currentTarget = null;
+                        } else {
+                            message = `对${state.name}国施加外交压力，其抵抗意志下降${resistDrop}点。`;
+                            if (state.status === 'vassal') {
+                                message = `${state.name}国已是附庸，继续施压可准备吞并。`;
+                            } else if (state.alliance) {
+                                message += ' 但合纵同盟使其有所依仗。';
+                                this.globalHostility += 5;
+                            } else if (state.isGreatPower) {
+                                message += ' 但大国根基深厚，效果有限。';
+                            }
+                        }
+                        break;
+                        
+                    case 'bribe':
+                        if (this.gold < 250) return;
+                        this.gold -= 250;
+                        logType = 'economy';
+                        
+                        let powerDrop = 20 + Math.floor(Math.random() * 15);
+                        if (state.isGreatPower) {
+                            powerDrop = Math.floor(powerDrop * 0.7);
+                        }
+                        state.power = Math.max(10, state.power - powerDrop);
+                        state.stability = Math.max(20, state.stability - 10);
+                        
+                        message = `💰 重金收买${state.name}国权贵，国力削弱${powerDrop}点，民心不稳。`;
+                        
+                        if (state.isGreatPower) {
+                            message += ' 但大国根基深厚，效果有限。';
+                        }
+                        
+                        if (state.alliance && Math.random() > 0.5) {
+                            const ally = this.states[state.alliance];
+                            ally.alliance = null;
+                            state.alliance = null;
+                            message += ` 利益当前，${state.name}国与${ally.name}国合纵破裂！`;
+                            this.prestige += 10;
+                        }
+                        
+                        this.globalHostility += 3;
+                        break;
+                        
+                    case 'subvert':
+                        if (this.gold < 200 || this.army < 10) return;
+                        this.gold -= 200;
+                        this.army -= 10;
+                        logType = 'military';
+                        
+                        let stabilityDrop = 25;
+                        let resistanceDrop = 15;
+                        let powerDropSpy = 10;
+                        
+                        if (state.isGreatPower) {
+                            stabilityDrop = 15;
+                            resistanceDrop = 10;
+                            powerDropSpy = 5;
+                        }
+                        
+                        state.stability = Math.max(10, state.stability - stabilityDrop);
+                        state.resistance = Math.max(10, state.resistance - resistanceDrop);
+                        state.power = Math.max(10, state.power - powerDropSpy);
+                        
+                        message = `🗡️ 间谍渗透${state.name}国，制造民变，稳定性暴跌！`;
+                        
+                        if (state.isGreatPower) {
+                            message += ' 但大国根基深厚，效果有限。';
+                        }
+                        
+                        if (state.stability < 30) {
+                            message += ' 该国陷入内乱，无力抵抗。';
+                            this.prestige += 5;
+                        }
+                        
+                        this.globalHostility += 5;
+                        break;
+                        
+                    case 'military':
+                        let armyCost = 40;
+                        if (state.isGreatPower) {
+                            armyCost = 60;
+                        }
+                        
+                        if (this.army < armyCost) return;
+                        this.army -= armyCost;
+                        logType = 'military';
+                        
+                        let damage = 30 + Math.floor(this.prestige * 0.3);
+                        if (state.isGreatPower) {
+                            damage = Math.floor(damage * 0.7);
+                        }
+                        
+                        state.power = Math.max(5, state.power - damage);
+                        state.resistance = Math.min(100, state.resistance + 5);
+                        
+                        message = `⚔️ 秦军出击，大破${state.name}国军队，国力损失${damage}点！`;
+                        
+                        if (state.isGreatPower) {
+                            message += ' 但大国实力雄厚，秦军损耗巨大！';
+                            const counterDamage = 15 + Math.floor(Math.random() * 10);
+                            this.army = Math.max(0, this.army - counterDamage);
+                            this.gold = Math.max(0, this.gold - 50);
+                            message += ` 敌军反击，秦军再损失${counterDamage}兵力，军费激增！`;
+                        }
+                        
+                        if (state.alliance) {
+                            message += ' 合纵同盟震怒！';
+                            this.globalHostility += 15;
+                        }
+                        
+                        if (this.warDuration[this.selected] >= 2) {
+                            state.stability = Math.max(20, state.stability - 10);
+                            message += ` 多次用兵使${state.name}国民生凋敝。`;
+                        }
+                        
+                        break;
+                        
+                    case 'annex':
+                        let canAnnex = false;
+                        let successRate = 0.7;
+                        
+                        if (state.status === 'vassal') {
+                            canAnnex = state.vassalYears >= 2 || state.resistance < 30;
+                            successRate = 0.85;
+                            if (state.vassalYears < 1) {
+                                message = `${state.name}国刚臣服不久，民心未附，建议再等待${2-state.vassalYears}年。`;
+                                this.log(message, 'warning');
+                                return;
+                            }
+                        } else {
+                            canAnnex = state.power <= 30 && (state.resistance <= 50 || state.stability <= 40);
+                        }
+                        
+                        if (state.isGreatPower && state.status !== 'vassal') {
+                            canAnnex = state.power <= 20 && state.resistance <= 30;
+                            successRate = 0.5;
+                        }
+                        
+                        if (!canAnnex) {
+                            if (state.isGreatPower) {
+                                this.log(`⚠️ ${state.name}国乃当世大国，根基深厚，强行攻伐必遭惨败！建议先削弱其国力至20以下。`, 'military');
+                            } else {
+                                this.log(`⚠️ ${state.name}国尚有抵抗能力，强行吞并可能失败！建议继续削弱。`, 'military');
+                            }
+                            return;
+                        }
+                        
+                        if (state.power > 20) successRate -= 0.1;
+                        if (state.resistance > 30) successRate -= 0.15;
+                        if (state.stability > 50) successRate -= 0.1;
+                        if (state.alliance) successRate -= 0.2;
+                        if (this.warDuration[this.selected] >= 3) successRate += 0.15;
+                        if (state.isGreatPower) successRate -= 0.2;
+                        
+                        successRate = Math.max(0.3, Math.min(0.95, successRate));
+                        
+                        if (Math.random() > successRate) {
+                            // 吞并失败 - 不再重复增加用兵次数！
+                            let failDamage = 30;
+                            if (state.isGreatPower) {
+                                failDamage = 50;
+                            }
+                            this.army -= failDamage;
+                            this.prestige -= 10;
+                            message = `❌ 吞并${state.name}国失败！遭遇顽强抵抗，秦军损失惨重，威望下降。`;
+                            logType = 'military';
+                            state.resistance = 100;
+                            state.stability = Math.min(100, state.stability + 20);
+                            this.globalHostility += 20;
+                            
+                            // 删除了重复的：this.warDuration[this.selected] = (this.warDuration[this.selected] || 0) + 1;
+                            
+                            if (state.isGreatPower) {
+                                message += ' 大国根基深厚，非一朝一夕可破！';
+                            }
+                        } else {
+                            // 成功吞并
+                            const wasVassal = state.status === 'vassal';
+                            state.status = 'annexed';
+                            this.annexedOrder.push(state.name);
+                            
+                            delete this.warDuration[this.selected];
+                            if (this.currentTarget === this.selected) {
+                                this.currentTarget = null;
+                            }
+                            
+                            let loot = state.maxPower * (wasVassal ? 2 : 3);
+                            let armyGain = wasVassal ? 10 : 25;
+                            
+                            if (state.isGreatPower) {
+                                loot = Math.floor(loot * 1.5);
+                                armyGain = Math.floor(armyGain * 1.3);
+                            }
+                            
+                            this.gold += loot;
+                            this.army += armyGain;
+                            
+                            message = `🏛️ 大捷！${state.name}国${wasVassal ? '正式并入' : '灭亡，纳入'}秦土！获得${loot}金，收编军力${armyGain}。`;
+                            logType = 'annex';
+                            
+                            if (state.isGreatPower) {
+                                message += ' 灭此大国，六国震动！';
+                                this.prestige += 30;
+                            }
+                            
+                            Object.values(this.states).forEach(s => {
+                                if (s.status !== 'annexed' && s.name !== state.name) {
+                                    if (this.areNeighbors(s.name, state.name)) {
+                                        s.resistance = Math.max(0, s.resistance - 15);
+                                        s.stability = Math.max(20, s.stability - 10);
+                                    } else {
+                                        s.resistance = Math.min(100, s.resistance + 10);
+                                    }
+                                }
+                            });
+                            
+                            this.globalHostility += 15;
+                            if (!state.isGreatPower) {
+                                this.prestige += 20;
+                            }
+                        }
+                        break;
+                }
+                
+                this.log(message, logType);
+                
+                this.checkCoalitionTrigger();
+                
+                this.checkWin();
+                this.render();
+                this.updateUI();
+            }
+            
+            triggerGreatPowerCrisis(targetName) {
+                const warTimes = this.warDuration[targetName] || 1;
+                
+                if (warTimes === 1 && Math.random() > 0.3) {
+                    this.internalCrisis = true;
+                    this.crisisCountdown = 2;
+                    
+                    const neighbors = {
+                        '楚': ['齐'],
+                        '齐': ['魏', '燕', '楚']
+                    };
+                    
+                    const potentialAttackers = neighbors[targetName]?.filter(n => 
+                        this.states[n] && this.states[n].status === 'independent'
+                    ) || [];
+                    
+                    if (potentialAttackers.length > 0) {
+                        const attacker = potentialAttackers[Math.floor(Math.random() * potentialAttackers.length)];
+                        const damage = 20 + Math.floor(Math.random() * 15);
+                        
+                        this.army = Math.max(0, this.army - damage);
+                        this.gold = Math.max(0, this.gold - 80);
+                        
+                        this.log(`⚠️ 秦军主力攻${targetName}，${attacker}国趁虚而入！边境告急，损失${damage}兵力！`, 'warning');
+                    }
+                }
+                
+                if (warTimes >= 2) {
+                    const damage = 15 * warTimes;
+                    this.army = Math.max(0, this.army - damage);
+                    this.gold = Math.max(0, this.gold - 50 * warTimes);
+                    
+                    this.log(`⚠️ 攻${targetName}多次用兵，师老兵疲，多国蠢蠢欲动！国力持续损耗...`, 'warning');
+                }
+            }
+            
+            checkCoalitionTrigger() {
+                let maxWarTimes = 0;
+                let longestWarState = null;
+                
+                Object.entries(this.warDuration).forEach(([stateName, times]) => {
+                    if (times > maxWarTimes) {
+                        maxWarTimes = times;
+                        longestWarState = stateName;
+                    }
+                });
+                
+                const isGreatPower = this.states[longestWarState]?.isGreatPower || false;
+                const triggerThreshold = isGreatPower ? 2 : 3;
+                
+                if (maxWarTimes >= triggerThreshold && !this.coalitionActive) {
+                    const triggerChance = maxWarTimes === triggerThreshold ? (isGreatPower ? 0.8 : 0.6) : 0.9;
+                    
+                    if (Math.random() < triggerChance) {
+                        this.triggerCoalition(longestWarState, maxWarTimes);
+                    } else if (maxWarTimes === triggerThreshold) {
+                        this.log(`⚠️ 对${longestWarState}国用兵已${maxWarTimes}次，各国开始警觉，下次可能组成合纵联军！`, 'warning');
+                    }
+                }
+            }
+            
+            triggerCoalition(targetState, warTimes) {
+                // 检查是否有足够的国家组成联军（至少2个）
+                const available = Object.values(this.states).filter(s => 
+                    s.status !== 'annexed' && s.status !== 'vassal' && s.name !== targetState
+                );
+                
+                if (available.length < 2) {
+                    this.log(`各国自顾不暇，无力组成合纵联军。`, 'diplomacy');
+                    return;
+                }
+                
+                this.coalitionActive = true;
+                
+                const isGreatPower = this.states[targetState]?.isGreatPower || false;
+                const memberCount = Math.min(available.length, isGreatPower ? 3 : (warTimes >= 3 ? 3 : 2));
+                
+                available.sort((a, b) => b.resistance - a.resistance);
+                this.coalitionMembers = available.slice(0, memberCount).map(s => s.name);
+                
+                this.coalitionMembers.forEach(name => {
+                    this.states[name].status = 'allied-against';
+                    this.states[name].alliance = targetState;
+                });
+                
+                this.coalitionCountdown = 2 + Math.floor(Math.random() * 2);
+                
+                const memberStr = this.coalitionMembers.map(n => n + '国').join('、');
+                const desc = `由于对${targetState}国用兵已达${warTimes}次，${memberStr}组成合纵联军，从多方向秦军发起反攻！<br><br>合纵将持续${this.coalitionCountdown}年，期间各国国力恢复加速，秦军将承受巨大压力！`;
+                
+                document.getElementById('coalitionDesc').innerHTML = desc;
+                document.getElementById('coalitionAlert').classList.add('show');
+                document.getElementById('overlay').classList.add('show');
+                
+                this.log(`🚨 合纵联军组成！${memberStr}联合反攻秦国！`, 'coalition');
+                
+                let damage = 30 * this.coalitionMembers.length;
+                if (this.states[targetState]?.isGreatPower) {
+                    damage = Math.floor(damage * 1.3);
+                }
+                this.army = Math.max(0, this.army - damage);
+                this.gold = Math.max(0, this.gold - 100);
+                
+                this.log(`合纵联军攻势凶猛，秦军损失${damage}兵力，边境军费激增！`, 'military');
+            }
+            
+            closeCoalitionAlert() {
+                document.getElementById('coalitionAlert').classList.remove('show');
+                document.getElementById('overlay').classList.remove('show');
+            }
+            
+            areNeighbors(a, b) {
+                const neighbors = {
+                    '韩': ['魏', '赵'],
+                    '魏': ['韩', '赵', '齐'],
+                    '赵': ['韩', '魏', '燕'],
+                    '楚': ['齐'],
+                    '齐': ['魏', '燕', '楚'],
+                    '燕': ['赵', '齐']
+                };
+                return neighbors[a]?.includes(b) || neighbors[b]?.includes(a);
+            }
+            
+            endTurn() {
+                if (this.gameOver) return;
+                
+                this.turn++;
+                this.year -= 1;
+                
+                const vassals = Object.values(this.states).filter(s => s.status === 'vassal');
+                vassals.forEach(v => {
+                    v.vassalYears++;
+                    this.gold += 40;
+                    this.army += 15;
+                });
+                
+                const annexedCount = Object.values(this.states).filter(s => s.status === 'annexed').length;
+                const baseIncome = 100 + annexedCount * 80;
+                const vassalIncome = vassals.length * 40;
+                
+                this.gold += baseIncome;
+                // 修改：每年兵力增加40（原来是+20）
+                this.army = Math.min(200 + annexedCount * 50, this.army + 40);
+                
+                if (this.coalitionActive) {
+                    this.coalitionCountdown--;
+                    
+                    this.coalitionMembers.forEach(name => {
+                        const s = this.states[name];
+                        s.power = Math.min(s.maxPower, s.power + 15);
+                        s.stability = Math.min(100, s.stability + 10);
+                    });
+                    
+                    this.army -= 20;
+                    this.gold -= 50;
+                    
+                    this.log(`合纵联军持续进攻，秦军疲于应付...（剩余${this.coalitionCountdown}年）`, 'coalition');
+                    
+                    if (this.coalitionCountdown <= 0) {
+                        this.coalitionActive = false;
+                        this.coalitionMembers.forEach(name => {
+                            if (this.states[name].status === 'allied-against') {
+                                this.states[name].status = 'independent';
+                                this.states[name].alliance = null;
+                            }
+                        });
+                        this.coalitionMembers = [];
+                        this.log('合纵同盟因利益分歧瓦解，各国退兵！', 'diplomacy');
+                    }
+                }
+                
+                if (this.internalCrisis) {
+                    this.crisisCountdown--;
+                    if (this.crisisCountdown <= 0) {
+                        this.internalCrisis = false;
+                    }
+                }
+                
+                this.prestige = Math.max(0, this.prestige - 2);
+                
+                this.aiTurn();
+                
+                if (!this.coalitionActive) {
+                    this.checkNaturalCoalition();
+                }
+                
+                this.log(`公元前${this.year}年：国库收入${baseIncome+vassalIncome}金，${vassals.length}个附庸国纳贡。`, 'economy');
+                
+                this.checkWin();
+                this.render();
+                this.updateUI();
+            }
+            
+            aiTurn() {
+                const activeStates = Object.values(this.states).filter(s => s.status === 'independent');
+                
+                activeStates.forEach(state => {
+                    if (state.power < state.maxPower) {
+                        let recovery = this.coalitionActive ? 10 : 5;
+                        if (state.isGreatPower) {
+                            recovery = Math.floor(recovery * 1.3);
+                        }
+                        state.power = Math.min(state.maxPower, state.power + recovery);
+                    }
+                    if (state.stability < 100 && Math.random() > 0.5) {
+                        state.stability = Math.min(100, state.stability + 5);
+                    }
+                    
+                    if (this.globalHostility > 50 && state.resistance < 80) {
+                        state.resistance = Math.min(100, state.resistance + 3);
+                    }
+                });
+                
+                if (Math.random() > 0.7) {
+                    const events = [
+                        { text: '关中丰收，粮草充足！', effect: () => this.gold += 100, type: 'economy' },
+                        { text: '名将训练新兵，秦军战力提升！', effect: () => { this.army += 30; this.prestige += 5; }, type: 'military' },
+                        { text: '商贾云集，贸易繁荣。', effect: () => this.gold += 80, type: 'economy' },
+                        { text: '贵族谋反，消耗资源平息。', effect: () => { this.gold -= 100; this.prestige -= 5; }, type: 'military' }
+                    ];
+                    const evt = events[Math.floor(Math.random() * events.length)];
+                    evt.effect();
+                    this.log(`【事件】${evt.text}`, evt.type);
+                }
+            }
+            
+            checkNaturalCoalition() {
+                const hostileStates = Object.values(this.states).filter(s => 
+                    s.status === 'independent' && s.resistance > 75 && !s.alliance
+                );
+                
+                if (hostileStates.length >= 2 && this.globalHostility > 60 && Math.random() > 0.7) {
+                    const s1 = hostileStates[0];
+                    const s2 = hostileStates[1];
+                    s1.alliance = s2.name;
+                    s2.alliance = s1.name;
+                    s1.status = 'allied-against';
+                    s2.status = 'allied-against';
+                    
+                    this.log(`🚨 ${s1.name}国与${s2.name}国达成合纵同盟，共同抗秦！`, 'coalition');
+                    this.globalHostility += 10;
+                }
+            }
+            
+            checkWin() {
+                const annexed = Object.values(this.states).filter(s => s.status === 'annexed').length;
+                const independent = Object.values(this.states).filter(s => s.status === 'independent').length;
+                
+                if (annexed === 6) {
+                    const endYear = this.year;
+                    const startYear = 356;
+                    const yearsTaken = startYear - endYear;
+                    this.endGame(true, `历经${yearsTaken}年（公元前${startYear}年至公元前${endYear}年），秦王扫六合，虎视何雄哉！挥剑决浮云，诸侯尽西来。车同轨，书同文，行同伦，华夏一统！`);
+                    return;
+                }
+                
+                if (this.army < 20 && this.gold < 100 && independent > 0) {
+                    this.endGame(false, `秦军久战疲惫，国库空虚，无力再战。${independent}国联合反攻，秦国割地求和，霸业中衰...`);
+                    return;
+                }
+                
+                if (this.coalitionActive && this.army < 50 && this.gold < 200) {
+                    this.endGame(false, '合纵联军势大，秦军主力覆灭，函谷关失守。秦王被迫割地称臣，统一大业化为泡影...');
+                    return;
+                }
+            }
+            
+            endGame(victory, message) {
+                this.gameOver = true;
+                const modal = document.getElementById('gameOver');
+                modal.classList.add('show');
+                
+                if (victory) {
+                    document.getElementById('endTitle').style.display = 'block';
+                    document.getElementById('endTitleDefeat').style.display = 'none';
+                } else {
+                    document.getElementById('endTitle').style.display = 'none';
+                    document.getElementById('endTitleDefeat').style.display = 'block';
+                }
+                
+                document.getElementById('endDesc').textContent = message;
+                
+                const annexed = Object.values(this.states).filter(s => s.status === 'annexed').length;
+                const vassals = Object.values(this.states).filter(s => s.status === 'vassal').length;
+                
+                const yearsTaken = 356 - this.year;
+                
+                document.getElementById('finalStats').innerHTML = `
+                    <div class="final-stat">
+                        <div class="final-value">${yearsTaken}</div>
+                        <div class="final-label">统一耗时（年）</div>
+                    </div>
+                    <div class="final-stat">
+                        <div class="final-value">${annexed}</div>
+                        <div class="final-label">直接吞并</div>
+                    </div>
+                    <div class="final-stat">
+                        <div class="final-value">${vassals}</div>
+                        <div class="final-label">附庸归顺</div>
+                    </div>
+                `;
+            }
+            
+            updateUI() {
+                document.getElementById('resGold').textContent = Math.floor(this.gold);
+                document.getElementById('resArmy').textContent = Math.floor(this.army);
+                document.getElementById('resPrestige').textContent = Math.floor(this.prestige);
+                document.getElementById('resFatigue').textContent = Math.floor(this.globalHostility);
+                document.getElementById('resTurn').textContent = this.turn;
+                
+                document.getElementById('turnBadge').textContent = `公元前 ${this.year} 年`;
+                
+                const warBanner = document.getElementById('warBanner');
+                if (this.coalitionActive) {
+                    warBanner.classList.add('active');
+                    warBanner.textContent = `🚨 合纵进行中！${this.coalitionMembers.join('、')}国联军正在反攻（剩余${this.coalitionCountdown}年）🚨`;
+                } else {
+                    const maxWar = Math.max(0, ...Object.values(this.warDuration));
+                    if (maxWar >= 2) {
+                        warBanner.classList.add('active');
+                        warBanner.textContent = `⚠️ 警告：对某国用兵已${maxWar}次，各国警觉，下次可能触发合纵反攻！⚠️`;
+                    } else {
+                        warBanner.classList.remove('active');
+                    }
+                }
+                
+                const annexed = Object.values(this.states).filter(s => s.status === 'annexed').length;
+                const vassals = Object.values(this.states).filter(s => s.status === 'vassal').length;
+                const independent = 6 - annexed - vassals;
+                
+                const progress = (annexed / 6) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+                document.getElementById('progressBar').textContent = Math.floor(progress) + '%';
+                document.getElementById('progressText').textContent = `${annexed}/6 国`;
+                
+                document.getElementById('annexedCount').textContent = annexed;
+                document.getElementById('vassalCount').textContent = vassals;
+                document.getElementById('independentCount').textContent = independent;
+                
+                const hostilityTrend = this.globalHostility > 60 ? '↑ 合纵风险' : this.globalHostility > 40 ? '→ 警惕' : '↓ 可控';
+                document.getElementById('hostilityTrend').textContent = hostilityTrend;
+                document.getElementById('hostilityTrend').style.color = this.globalHostility > 60 ? '#e94560' : this.globalHostility > 40 ? '#ffd700' : '#4ade80';
+                
+                this.updateButtons();
+                this.updateTargetInfo();
+            }
+            
+            updateButtons() {
+                const hasTarget = this.selected !== null;
+                const state = hasTarget ? this.states[this.selected] : null;
+                
+                document.getElementById('btnDiplomacy').disabled = !hasTarget || this.gold < 150 || state?.status === 'annexed';
+                document.getElementById('btnBribe').disabled = !hasTarget || this.gold < 250 || state?.status === 'annexed';
+                document.getElementById('btnSubvert').disabled = !hasTarget || this.gold < 200 || this.army < 10 || state?.status === 'annexed';
+                
+                let armyCost = 40;
+                if (state?.isGreatPower && state?.status === 'independent') {
+                    armyCost = 60;
+                }
+                document.getElementById('btnMilitary').disabled = !hasTarget || this.army < armyCost || state?.status === 'annexed';
+                
+                let canAnnex = false;
+                if (hasTarget && state.status !== 'annexed') {
+                    if (state.status === 'vassal') {
+                        canAnnex = state.vassalYears >= 2 || state.resistance < 30;
+                    } else if (state.isGreatPower) {
+                        canAnnex = state.power <= 20 && state.resistance <= 30;
+                    } else {
+                        canAnnex = state.power <= 30 && (state.resistance <= 50 || state.stability <= 40);
+                    }
+                }
+                document.getElementById('btnAnnex').disabled = !canAnnex;
+            }
+            
+            log(message, type = 'normal') {
+                const logDiv = document.getElementById('logContent');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.innerHTML = `<span class="log-time">[公元前${this.year}年]</span>${message}`;
+                logDiv.insertBefore(entry, logDiv.firstChild);
+                
+                while (logDiv.children.length > 30) {
+                    logDiv.removeChild(logDiv.lastChild);
+                }
+            }
+        }
+        
+        const game = new ConquestGame();
+    </script>
+</body>
+</html>
